@@ -15,11 +15,8 @@ const STATUS_CLASS = {
 function canEditTask(user, task) {
   if (user?.role === 'Admin') return true;
   if (user?.role === 'Viewer') return false;
-  return (
-    task.createdBy === user?.loginId ||
-    task.editedBy === user?.loginId ||
-    task.assignedTo?.toLowerCase().includes(user?.displayName?.toLowerCase())
-  );
+  // Regular users: can only edit tasks they created
+  return task.createdBy === user?.loginId;
 }
 
 function getUserDisplay(users, loginId) {
@@ -158,7 +155,7 @@ export default function TaskTable({ tasks, users, onTaskUpdate, onTaskDelete, on
   return (
     <div className="table-card">
       <div className="table-header">
-        <h2>📋 Task Records <span className="count-badge">{tasks.length}</span></h2>
+        <h2>📋 {isAdmin() ? 'All Task Records' : 'My Tasks'} <span className="count-badge">{tasks.length}</span></h2>
         <div className="table-actions">
           {!isViewer() && (
             <button className="tbl-btn primary" onClick={onAddTask}>➕ Add Task</button>

@@ -8,9 +8,11 @@ import ActivityLog from '../components/ActivityLog';
 import UserManagement from '../components/UserManagement';
 import AddTaskModal from '../components/AddTaskModal';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { format, addWeeks, addMonths, addYears, startOfWeek, endOfWeek, startOfMonth, endOfMonth, parse } from 'date-fns';
 
 export default function Dashboard() {
+  const { user, isAdmin } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
@@ -144,13 +146,17 @@ export default function Dashboard() {
             <option>Pending</option><option>In Progress</option><option>Completed</option><option>Overdue</option><option>On Hold</option>
           </select>
 
-          <label>User:</label>
-          <select value={filterUser} onChange={e => setFilterUser(e.target.value)}>
-            <option value="">All Users</option>
-            {users.map(u => (
-              <option key={u.loginId} value={u.loginId}>{u.displayName}</option>
-            ))}
-          </select>
+          {isAdmin() && (
+            <>
+              <label>User:</label>
+              <select value={filterUser} onChange={e => setFilterUser(e.target.value)}>
+                <option value="">All Users</option>
+                {users.map(u => (
+                  <option key={u.loginId} value={u.loginId}>{u.displayName}</option>
+                ))}
+              </select>
+            </>
+          )}
 
           <label>Search:</label>
           <input 

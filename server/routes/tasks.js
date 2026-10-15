@@ -8,17 +8,23 @@ const { protect } = require('../middleware/auth');
 const canEdit = (user, task) => {
   if (user.role === 'Admin') return true;
   if (user.role === 'Viewer') return false;
-  return (
-    task.createdBy === user.loginId ||
-    task.editedBy === user.loginId ||
-    task.assignedTo.toLowerCase().includes(user.displayName.toLowerCase())
-  );
+  // Regular users can only edit tasks they created
+  return task.createdBy === user.loginId;
+};
+
+// Build query filter based on role
+const getTaskFilter = (user) => {
+  if (user.role === 'Admin') return {}; // Admin sees all
+  if (user.role === 'Viewer') return {}; // Viewer sees all (read-only)
+  // Regular User: only their own tasks
+  return { createdBy: user.loginId };
 };
 
 // @route GET /api/tasks
 router.get('/', protect, async (req, res) => {
   try {
-    const tasks = await Task.find().sort({ createdAt: -1 });
+    const filter = getTaskFilter(req.user);
+    const tasks = await Task.find(filter).sort({ createdAt: -1 });
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
